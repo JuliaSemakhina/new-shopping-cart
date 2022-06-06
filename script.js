@@ -1,84 +1,76 @@
 const shop = document.querySelector("#shop");
 
-let shopItemsData = [{
-	id:11,
-	name: "Casual Shirt",
-	price: 45,
-	desc: "Lorem ipsum dolor sit amet consectetur, adipisicing.",
-	img: "img/t1.png"
-},
-{
-	id:22,
-	name: "Office Shirt",
-	price: 100,
-	desc: "Lorem ipsum dolor sit amet consectetur elit.",
-	img: "img/t2.png"
-},
-{
-	id:33,
-	name: "T-Shirt",
-	price: 25,
-	desc: "Lorem ipsum dolor sit amet consectetur, adipisicing.",
-	img: "img/t3.png"
-},
-{
-	id:44,
-	name: "Super Shirt",
-	price: 59,
-	desc: "Lorem ipsum dolor sit amet consectetur, adipisicing elit.",
-	img: "img/t4.png"
-}
-];
 
-let basket = []; 
+let basket = JSON.parse(localStorage.getItem("CART")) || [];
 
-let generateShop =()=>{
-	 shopItemsData.forEach((card)=>{
-			shop.innerHTML += 
-		`<div id="product-id-${card.id}" class="item">
-            <img width="220"  height="220" src=${card.img} alt="">
+let generateShop = () => {
+
+    shopItemsData.forEach((card) => {
+        let { id, name, price, desc, img } = card;
+        let search = basket.find((x) => x.id === id) || [];
+        shop.innerHTML +=
+            `<div id="product-id-${card.id}" class="item">
+            <img width="220"  height="220" src=${img} alt="">
           <div class="details">
-            <h3>${card.name}</h3>
-            <p>${card.desc}</p> 
+            <h3>${name}</h3>
+            <p>${desc}</p> 
 	          <div class="price-quantity">
-	               <h2>$ ${card.price}</h2>
+	               <h2>$ ${price}</h2>
 		          <div class="buttons">
-		                <i onclick="decrement(${card.id})" class="bi bi-dash-square-fill"></i>
-		                <div id=${card.id} class="quantity">0</div>
-		                <i onclick="increment(${card.id})" class="bi bi-plus-square-fill"></i>
+		                <i onclick="decrement(${id})" class="bi bi-dash-square-fill"></i>
+		                <div id=${id} class="quantity">${search.item === undefined ? 0 : search.item}</div>
+		                <i onclick="increment(${id})" class="bi bi-plus-square-fill"></i>
 		          </div>
 	          </div>
           </div>
         </div>`
-	});
+    });
 };
 
 generateShop();
 
-let increment=(id)=>{
-	let selectedItem = id;
-	let search = basket.find((x)=> x.id === selectedItem);
+let increment = (id) => {
+    let selectedItem = id;
+    let search = basket.find((x) => x.id === selectedItem);
 
-	if(search === undefined){
-		basket.push({id: selectedItem,
-		item: 1});
-	} else {
-		search.item += 1;
-	}
-	
-	
+    if (search === undefined) {
+        basket.push({
+            id: selectedItem,
+            item: 1
+        });
+    } else {
+        search.item += 1;
+    }
 
-	console.log(basket);
+    update(id);
+    localStorage.setItem("CART", JSON.stringify(basket));
 }
 
-let decrement=(id)=>{
-	let selectedItem = id;
-	let search = basket.find((x)=> x.id === selectedItem);
+let decrement = (id) => {
+    let selectedItem = id;
+    let search = basket.find((x) => x.id === selectedItem);
 
-	if(search.item === 0){
-		return
-	} else {
-		search.item -= 1;
-	}
-	console.log(basket);
+    if (search === undefined || search.item === 0) {
+        return
+    } else {
+        search.item -= 1;
+    }
+    update(id);
+    basket = basket.filter((x) => x.item !== 0);
+
+    localStorage.setItem("CART", JSON.stringify(basket));
 }
+
+let update = (id) => {
+    let search = basket.find((x) => x.id === id)
+    document.getElementById(id).innerHTML = search.item;
+    calculation();
+};
+
+let calculation = () => {
+    let cartIcon = document.getElementById('cartAmount');
+    cartIcon.innerHTML = basket.map((x) => x.item).
+    reduce((x, y) => x + y, 0);
+};
+
+calculation();
